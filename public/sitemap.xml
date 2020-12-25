@@ -3,19 +3,19 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://example.com/about/</loc>
+    <loc>https://pi4fun.dev/about/</loc>
   </url>
   
   <url>
-    <loc>https://example.com/categories/</loc>
+    <loc>https://pi4fun.dev/categories/</loc>
   </url>
   
   <url>
-    <loc>https://example.com/</loc>
+    <loc>https://pi4fun.dev/</loc>
   </url>
   
   <url>
-    <loc>https://example.com/tags/</loc>
+    <loc>https://pi4fun.dev/tags/</loc>
   </url>
   
 </urlset>
