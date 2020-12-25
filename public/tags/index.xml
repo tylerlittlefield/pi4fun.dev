@@ -6,8 +6,20 @@
     <description>Recent content in Tags on pi4fun.dev</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
+    <lastBuildDate>Fri, 25 Dec 2020 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://pi4fun.dev/tags/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    
+    <item>
+      <title>👨🏻‍🍳 Self hosting a website</title>
+      <link>https://pi4fun.dev/self-hosting-a-website/</link>
+      <pubDate>Fri, 25 Dec 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://pi4fun.dev/self-hosting-a-website/</guid>
+      <description>With stay at home orders in place, my sanity shattered, I was on the hunt for a project to keep me busy.</description>
+    </item>
     
     
     

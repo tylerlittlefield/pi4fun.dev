@@ -3,19 +3,41 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://pi4fun.dev/</loc>
+    <lastmod>2020-12-25T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pi4fun.dev/posts/</loc>
+    <lastmod>2020-12-25T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pi4fun.dev/tags/raspberry-pi/</loc>
+    <lastmod>2020-12-25T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pi4fun.dev/tags/</loc>
+    <lastmod>2020-12-25T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pi4fun.dev/tags/website/</loc>
+    <lastmod>2020-12-25T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pi4fun.dev/self-hosting-a-website/</loc>
+    <lastmod>2020-12-25T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://pi4fun.dev/about/</loc>
   </url>
   
   <url>
     <loc>https://pi4fun.dev/categories/</loc>
-  </url>
-  
-  <url>
-    <loc>https://pi4fun.dev/</loc>
-  </url>
-  
-  <url>
-    <loc>https://pi4fun.dev/tags/</loc>
   </url>
   
 </urlset>

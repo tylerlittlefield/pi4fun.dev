@@ -1,4 +1,4 @@
 ---
 title: Home
 ---
-A tiny raspberry pi cluster doing tiny raspberry pi things
+Adventures with raspberry pi cluster

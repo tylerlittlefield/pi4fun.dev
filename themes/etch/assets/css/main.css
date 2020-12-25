@@ -265,3 +265,8 @@ footer#footer {
     color: #949494;
     margin: 40px 0;
 }
+
+/* stuff i've added */
+img {
+    border-radius: 6px;
+}
