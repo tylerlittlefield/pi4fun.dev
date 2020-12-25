@@ -1,4 +1,4 @@
 ---
 title: Home
 ---
-Adventures with raspberry pi cluster
+Adventures with a Raspberry Pi cluster
