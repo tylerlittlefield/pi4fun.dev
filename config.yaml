@@ -1,0 +1,33 @@
+baseURL: https://pi4fun.dev
+title: pi4fun.dev
+theme: etch
+languageCode: en-US
+enableInlineShortcodes: yes
+pygmentsCodeFences: yes
+pygmentsUseClasses: yes
+ignoreFiles: ["\\.Rmd$", "\\.Rmarkdown$", "_cache$", "\\.knit\\.md$", "\\.utf8\\.md$"]
+params:
+  copyright: Copyright © 2020 Tyler Littlefield | Made in Irvine, CA
+  dark: auto
+  description: A tiny cluster doing tiny things
+  highlight: yes
+menu:
+  main:
+    - identifier: posts
+      name: posts
+      title: posts
+      url: /
+      weight: 10
+    - identifier: about
+      name: about
+      title: about
+      url: /about/
+      weight: 20
+permalinks:
+  posts: /:title/
+markup:
+  goldmark:
+    renderer:
+      unsafe: yes
+  tableOfContents:
+    ordered: yes
