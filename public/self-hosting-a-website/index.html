@@ -25,7 +25,142 @@
 <main id="content">
 <article>
     <header id="post-header">
-        <h1>👨🏻‍🍳 Self hosting a website</h1><time>December 25, 2020</time></header><p>testing gh action&hellip;</p>
+        <h1>👨🏻‍🍳 Self hosting a website</h1><time>December 25, 2020</time></header><p>In this guide, I show you how to deploy a self hosted website using a Raspberry Pi. By the end of this guide you should have:</p>
+<ul>
+<li>A website you can access with <code>https://your-domain.dev</code></li>
+<li>Automatic updates on push events with github actions</li>
+</ul>
+<p>A summary of the main tools used are as follows:</p>
+<ul>
+<li>Raspberry Pi, the machine to actually server the site</li>
+<li>Google domains, a service to buy a domain and configure a synthetic DNS record</li>
+<li>ddclient, a client for updating dynamic DNS entries</li>
+<li>hugo, a framework for building static websites</li>
+<li>NGINX, a webserver</li>
+<li>Github actions, to update the site with any commit to git repository</li>
+</ul>
+<h1 id="disclaimer">Disclaimer</h1>
+<p>I have next to zero experience with this stuff. In the past, I have used github pages, netlify and others to deploy stuff but this is my first time deploying something from my own self hosted server. <strong>If security is a concern</strong>, you should be careful as this guide covers none of that. The only remotely secure thing I have done is use a <code>.dev</code> domain which requires <code>https</code>.</p>
+<h1 id="prerequisites">Prerequisites</h1>
+<p>Throughout the rest of this text, I will assume you already have your Raspberry Pi set up, connected to internet, and can SSH into it. Additionally, your router should have ports 443/80/22 open for this device.</p>
+<h1 id="purchasing-a-domain">Purchasing a domain</h1>
+<p>The first step is purchasing a domain name. I have always gone with google domains and I am not sure if it matters. Usually it doesn&rsquo;t, but in this guide I create a <strong>synthetic record</strong> which is unique to google domains:</p>
+<blockquote>
+<p>Synthetic records are a concept unique to Google Domains. They perform tasks that require multiple resource records, such as mapping the domain and subdomains required to integrate with Google Workspace, creating email forwarding aliases, or even adding all the resource records required to integrate your domain with a 3rd-party web host.</p>
+</blockquote>
+<p>So if you don&rsquo;t want to deviate and figure out the network stuff on your own, go with google domains. In my case, I purchased <code>pi4fun.dev</code>, the <code>.dev</code> is a recently popular domain that requires <code>https</code> be used. From the docs, it says:</p>
+<blockquote>
+<p>The .dev top-level domain is included on the HSTS preload list, making HTTPS required on all connections to .dev websites and pages without needing individual HSTS registration or configuration. Security is built in.</p>
+</blockquote>
+<p>It&rsquo;s also just a cool domain, so I like using it. After you&rsquo;ve purchased a domain, you will need to make a synthetic record</p>
+<p><img src="/images/synthetic-record.png" alt=""></p>
+<h1 id="network-stuff-and-ddclient-magic">Network stuff and ddclient magic</h1>
+<p>I don&rsquo;t understand <code>ddclient</code> very well or anything network related for that matter. My poor interpretation is that it&rsquo;s used for services hosted on a dynamic IP, or services whose IP address changes from time to time. I believe this is a tricky problem for inexperienced people like myself. For example, logging into your Pi might work one day, but fail the next as the IP address has changed.</p>
+<p>My ISP is google fiber and I have personally never ran into this issue. Google fiber lets you <em>reserve</em> IPs by device and I have done this for all 3 of my Pi&rsquo;s. I have no idea if this is the reason my IP&rsquo;s haven&rsquo;t changed for each Pi.</p>
+<p>Anyway, SSH into you Pi and install ddclient with:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">sudo apt install ddclient
+</code></pre></div><p>After a GUI will appear and ask you to fill things out. I followed this guide to help me fill things out, the following steps are essentially the same:</p>
+<ul>
+<li><a href="https://engineerworkshop.com/blog/connecting-your-raspberry-pi-web-server-to-the-internet/">https://engineerworkshop.com/blog/connecting-your-raspberry-pi-web-server-to-the-internet/</a></li>
+</ul>
+<p>In short, you will:</p>
+<ol>
+<li>Select &ldquo;other&rdquo; as the dynamic DNS provider</li>
+<li>Provide &ldquo;domains.google.com&rdquo; as the dynamic DNS server</li>
+<li>Update the <code>ddclient.conf</code> file</li>
+</ol>
+<p>If you are nervous about what to fill out, I don&rsquo;t think you need to be as we are going to update the config file anyways. Start by running:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">sudo nano /etc/ddclient.conf
+</code></pre></div><p>And then provide:</p>
+<div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">daemon=300
+protocol=dyndns2
+use=web
+server=domains.google.com
+ssl=yes
+login=&lt;insert username from google domains (see screenshot above)&gt;
+password=&#39;&lt;insert password from google domains (see screenshot above)- KEEP SINGLE QUOTES&#39;
+&lt;your domain name here, e.g. pi4fun.dev&gt;
+</code></pre></div><p>Next, the defaults with:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">sudo nano /etc/default/ddclient
+</code></pre></div><p>And modify the file to have:</p>
+<div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">run_daemon=&#34;true&#34;
+daemon_interval=&#34;300&#34;
+</code></pre></div><p>Finally, start the client:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">sudo systemctl start ddclient
+</code></pre></div><p>Test the configuration with:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">sudo ddclient -daemon<span class="o">=</span><span class="m">0</span> -debug -verbose -noquiet
+</code></pre></div><p>If all goes well, you should see a success message. If you run the line once more, you should see:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">SUCCESS:  pi4fun.dev: skipped: IP address was already <span class="nb">set</span>
+</code></pre></div><p>Now if you go back to google domains, you should see that the public IP is associated with the synthetic record. It should no longer have a value of <code>0.0.0.0</code>. Finally, the last thing we need to configure on google domains is <strong>custom resource records</strong>. We need to add an <code>A</code> record so that you can access the site from <code>www.pi4fun.dev</code>, not just <code>pi4fun.dev</code>.</p>
+<p><img src="/images/custom-resource-record.png" alt=""></p>
+<h1 id="pick-a-hugo-theme">Pick a hugo theme</h1>
+<p>The next step is to pick a hugo theme. If you want to build your own site, without a theme you can skip this part. I have a lot of experience with R programming, so I have always used <code>blogdown</code> to create an R project that I can use to develop my site and track in git. I start by running the following commands:</p>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="c1"># set up the project</span>
+<span class="n">blogdown</span><span class="o">::</span><span class="nf">new_site</span><span class="p">(</span><span class="s">&#34;project-name&#34;</span><span class="p">,</span> <span class="n">theme</span> <span class="o">=</span> <span class="s">&#34;user/repo&#34;</span><span class="p">)</span>
+
+<span class="c1"># use git, assumes you have github credentials in your .Renviron file</span>
+<span class="n">usethis</span><span class="o">::</span><span class="nf">use_git</span><span class="p">()</span>
+
+<span class="c1"># push to github</span>
+<span class="n">usethis</span><span class="o">::</span><span class="nf">use_github</span><span class="p">()</span>
+
+<span class="c1"># use github actions</span>
+<span class="n">usethis</span><span class="o">::</span><span class="nf">use_github_actions</span><span class="p">()</span>
+</code></pre></div><p>By default, <code>usethis::use_github_actions()</code> will create and R CMD Check action, used for checking an R package. Rename this to something else like <code>Deploy.yaml</code> and provide the following action:</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">Deploy</span><span class="w">
+</span><span class="w"></span><span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="l">push]</span><span class="w">
+</span><span class="w"></span><span class="nt">jobs</span><span class="p">:</span><span class="w">
+</span><span class="w">
+</span><span class="w">  </span><span class="nt">build</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">Build</span><span class="w">
+</span><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l">ubuntu-latest</span><span class="w">
+</span><span class="w">    </span><span class="nt">steps</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span>- <span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l">actions/checkout@master</span><span class="w">
+</span><span class="w">    </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">Copy files via ssh key</span><span class="w">
+</span><span class="w">      </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l">appleboy/scp-action@master</span><span class="w">
+</span><span class="w">      </span><span class="nt">with</span><span class="p">:</span><span class="w">
+</span><span class="w">        </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l">${{ secrets.HOST }}</span><span class="w">
+</span><span class="w">        </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l">${{ secrets.USERNAME }}</span><span class="w">
+</span><span class="w">        </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l">${{ secrets.KEY }}</span><span class="w">
+</span><span class="w">        </span><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;public/*&#34;</span><span class="w">
+</span><span class="w">        </span><span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="l">${{ secrets.TARGET }}</span><span class="w">
+</span><span class="w">        </span><span class="nt">rm</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span></code></pre></div><p>The goal is to &ldquo;deploy&rdquo; our app by using <code>scp</code> to essentially copy all the contents of the <code>public</code> folder from our site to the server on every push. With this repository opened in a browser, add the secrets:</p>
+<p><img src="/images/gh-secrets.png" alt=""></p>
+<ul>
+<li><code>HOST</code> is the hosts IP, the public IP associated with the synthetic record</li>
+<li><code>KEY</code> is the SSH key used for logging into the Raspberry Pi, you can copy it with <code>pbcopy &lt; ~/.ssh/id_rsa</code> assuming your key is stored at this path</li>
+<li><code>TARGET</code> is the directory you want to copy the files to, you could probably just provide this instead of making it a secret if you want</li>
+<li><code>USERNAME</code> is the username you use to login to the Raspberry Pi</li>
+</ul>
+<p>With these secrets stored, every push should trigger an update to your site as it will remove the old contents and copy the new.</p>
+<h1 id="configuring-nginx">Configuring NGINX</h1>
+<p>At this point, you should have:</p>
+<ol>
+<li>A domain that we can point to over the internet</li>
+<li>A website that automatically pushes the contents of the <code>public</code> folder on push</li>
+</ol>
+<p>However, we still need to:</p>
+<ol>
+<li>Configure NGINX</li>
+<li>Add a certificate so that <code>https</code> works</li>
+</ol>
+<p>Start by logging into the Pi and installing NGINX with:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">sudo apt install nginx
+</code></pre></div><p>At this point, NGINX server is running and will come back to it later to point to our sites contents. Now let&rsquo;s use certbot to add a LetsEncrypt certificate that automatically renews. Navigate to <a href="https://certbot.eff.org/">https://certbot.eff.org/</a> and specify your environment. In my case, I&rsquo;m using NGINX and Ubuntu. I will skip over the code needed to run here, the certbot documentation is very clear, concise, and up to date.</p>
+<p>After, expand the certificate to include <code>www.pi4fun.dev</code> with:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">certbot certonly --standalone -d pi4fun.dev -d www.pi4fun.dev --dry-run
+</code></pre></div><p>If the dry run passes, remove the <code>--dry-run</code> flag and rerun. After this, the last step is to point NGINX to the files your site uses. This directory will be the one that the github action is pointing to, i.e. the <code>TARGET</code> environment variable. Edit the config file with:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">nano /etc/nginx/sites-available/default
+</code></pre></div><p>And modify like so:</p>
+<div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text"># comment out the default root and specify the new root
+# root /var/www/html;
+root /path/to/your/site/content/public;
+</code></pre></div><p>Do this for both server blocks. Save the file and check if the syntax is good:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">nginx -t
+</code></pre></div><p>If it passes, restart NGINX:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">systemctl restart nginx
+</code></pre></div><p>After this, we are all done! You should now have a site that is fully functional, and self hosted from your Raspberry Pi.</p>
 </article>
 
         </main><footer id="footer">

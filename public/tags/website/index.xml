@@ -18,7 +18,9 @@
       <pubDate>Fri, 25 Dec 2020 00:00:00 +0000</pubDate>
       
       <guid>https://pi4fun.dev/self-hosting-a-website/</guid>
-      <description>testing gh action&amp;hellip;</description>
+      <description>In this guide, I show you how to deploy a self hosted website using a Raspberry Pi. By the end of this guide you should have:
+ A website you can access with https://your-domain.dev Automatic updates on push events with github actions  A summary of the main tools used are as follows:
+ Raspberry Pi, the machine to actually server the site Google domains, a service to buy a domain and configure a synthetic DNS record ddclient, a client for updating dynamic DNS entries hugo, a framework for building static websites NGINX, a webserver Github actions, to update the site with any commit to git repository  Disclaimer I have next to zero experience with this stuff.</description>
     </item>
     
     
